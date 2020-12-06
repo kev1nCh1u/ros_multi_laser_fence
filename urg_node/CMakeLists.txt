@@ -42,6 +42,10 @@ target_link_libraries(urg_node_driver urg_c_wrapper ${catkin_LIBRARIES})
 add_executable(urg_node src/urg_node.cpp)
 target_link_libraries(urg_node urg_node_driver ${catkin_LIBRARIES})
 
+## Declare a cpp executable
+add_executable(urg_node_2 src/urg_node_2.cpp)
+target_link_libraries(urg_node_2 urg_node_driver ${catkin_LIBRARIES})
+
 ## Declare getID tool
 add_executable(getID src/getID.cpp)
 target_link_libraries(getID urg_c_wrapper ${catkin_LIBRARIES})

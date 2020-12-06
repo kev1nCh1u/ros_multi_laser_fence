@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<launch>
+
+    <node pkg="turtlesim" type="turtlesim_node" name="sim1">
+        <remap from="/turtle1/cmd_vel" to="/turtle1/cmd_vel"/>
+        <remap from="/turtle1/color_sensor" to="/turtle1/color_sensor"/>
+        <remap from="/turtle1/pose" to="/turtle1/pose"/>
+    </node>
+    <node pkg="turtlesim" type="turtlesim_node" name="sim2">
+        <remap from="/turtle1/cmd_vel" to="/turtle2/cmd_vel"/>
+        <remap from="/turtle1/color_sensor" to="/turtle2/color_sensor"/>
+        <remap from="/turtle1/pose" to="/turtle2/pose"/>
+    </node>
+
+    <node name="urg_node" pkg="urg_node" type="urg_node" output="screen">
+        <param name="ip_address" value="192.168.0.10"/>
+        <param name="serial_port" value="/dev/ttyACM0"/>
+        <param name="serial_baud" value="115200"/>
+        <param name="frame_id" value="laser"/>
+        <param name="calibrate_time" value="true"/>
+        <param name="publish_intensity" value="false"/>
+        <param name="publish_multiecho" value="false"/>
+        <param name="angle_min" value="-1.5707963"/>
+        <param name="angle_max" value="1.5707963"/>
+    </node>
+
+    <launch>
+    <node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="1 0 0 0 0 0 1 link1_parent link1 100" />
+    </launch>
+
+</launch>
