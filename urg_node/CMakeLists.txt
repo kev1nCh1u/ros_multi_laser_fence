@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.2)
 project(urg_node)
 
 find_package(catkin REQUIRED COMPONENTS
@@ -42,10 +42,6 @@ target_link_libraries(urg_node_driver urg_c_wrapper ${catkin_LIBRARIES})
 add_executable(urg_node src/urg_node.cpp)
 target_link_libraries(urg_node urg_node_driver ${catkin_LIBRARIES})
 
-## Declare a cpp executable
-add_executable(urg_node_2 src/urg_node_2.cpp)
-target_link_libraries(urg_node_2 urg_node_driver ${catkin_LIBRARIES})
-
 ## Declare getID tool
 add_executable(getID src/getID.cpp)
 target_link_libraries(getID urg_c_wrapper ${catkin_LIBRARIES})
@@ -80,7 +76,14 @@ if(CATKIN_ENABLE_TESTING)
   # Ignore long -> int32_t warning, urg_c driver uses
   # long, etc. Wrapper must also use these
   set(ROSLINT_CPP_OPTS "--filter=-runtime/references,-runtime/int")
-  roslint_cpp()
+  roslint_cpp(
+    include/urg_node/urg_c_wrapper.h
+    include/urg_node/urg_node_driver.h
+    src/getID.cpp
+    src/urg_c_wrapper.cpp
+    src/urg_node_driver.cpp
+    src/urg_node.cpp
+  )
   roslint_add_test()
 
   find_package(roslaunch REQUIRED)

@@ -43,7 +43,6 @@
 #include <diagnostic_updater/publisher.h>
 #include <urg_node/URGConfig.h>
 #include <std_srvs/Trigger.h>
-#include <tf/transform_broadcaster.h>
 
 #include "urg_node/urg_c_wrapper.h"
 
@@ -79,8 +78,6 @@ private:
   void scanThread();
 
   bool statusCallback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res);
-
-  void broadcast_transform();
 
   ros::NodeHandle nh_;
   ros::NodeHandle pnh_;
@@ -134,12 +131,6 @@ private:
   ros::Publisher status_pub_;
 
   ros::ServiceServer status_service_;
-
-
-
-  tf::TransformBroadcaster tf_broadcaster_;
-  tf::Vector3 transform_vector_;
-  tf::Transform transform_laser_;
 };
 
 }  // namespace urg_node

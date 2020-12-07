@@ -49,16 +49,6 @@ UrgNode::UrgNode(ros::NodeHandle nh, ros::NodeHandle private_nh) :
   pnh_(private_nh)
 {
   initSetup();
-
-
-  // transform_laser_.setOrigin(tf::Vector3(0.238, 0.0, 0.0));
-  // tf::Quaternion q_1;
-  // q_1.setRPY(0, 0, 0);
-  // transform_laser_.setRotation(q_1);
-
-
-  transform_vector_ = tf::Vector3(0.235, 0.0, 0.0);
-
 }
 
 UrgNode::UrgNode():
@@ -79,9 +69,9 @@ void UrgNode::initSetup()
   // Initialize node and nodehandles
 
   // Get parameters so we can change these later.
-  pnh_.param<std::string>("ip_address", ip_address_, "192.168.0.10");
+  pnh_.param<std::string>("ip_address", ip_address_, "");
   pnh_.param<int>("ip_port", ip_port_, 10940);
-  pnh_.param<std::string>("serial_port", serial_port_, "/dev/ttyACM1");
+  pnh_.param<std::string>("serial_port", serial_port_, "/dev/ttyACM0");
   pnh_.param<int>("serial_baud", serial_baud_, 115200);
   pnh_.param<bool>("calibrate_time", calibrate_time_, false);
   pnh_.param<bool>("synchronize_time", synchronize_time_, false);
@@ -236,12 +226,7 @@ bool UrgNode::reconfigure_callback(urg_node::URGConfig& config, int level)
   // Update accordingly here.
   freq_min_ = 1.0 / (urg_->getScanPeriod() * (config.skip + 1));
 
-  // std::string frame_id = tf::resolve(config.tf_prefix, config.frame_id);
-  // urg_->setFrameId(frame_id);
-  // urg_->setUserLatency(config.time_offset);
-
-
-  std::string frame_id = "base_laser_link";
+  std::string frame_id = tf::resolve(config.tf_prefix, config.frame_id);
   urg_->setFrameId(frame_id);
   urg_->setUserLatency(config.time_offset);
 
@@ -544,7 +529,6 @@ void UrgNode::scanThread()
           if (urg_->grabScan(msg))
           {
             laser_pub_.publish(msg);
-            broadcast_transform();
             laser_freq_->tick();
           }
           else
@@ -612,20 +596,5 @@ void UrgNode::run()
   // Start scanning now that everything is configured.
   close_scan_ = false;
   scan_thread_ = boost::thread(boost::bind(&UrgNode::scanThread, this));
-
-
-
 }
-
-void UrgNode::broadcast_transform() {
-
-    //tf_broadcaster_.sendTransform(tf::StampedTransform( transform_laser_, ros::Time::now(), "base_link", "base_laser_link"));
-
-      transform_vector_ = tf::Vector3(0.235, 0.0, 0.0);
-
-      tf_broadcaster_.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(0, 0, 0, 1), transform_vector_),
-                                                       ros::Time::now(), "base_link", "base_laser_link"));
-
-}
-
 }  // namespace urg_node

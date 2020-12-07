@@ -2,6 +2,47 @@
 Changelog for package urg_node
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.1.15 (2020-10-27)
+-------------------
+* Function setSkip() set as void
+  This function as no return type causing undefined behavior. This function
+  has been declared as void.
+* Contributors: bostoncleek
+
+0.1.14 (2020-06-04)
+-------------------
+* Bumped CMake version.
+* Removed trailing whitespace.
+* Contributors: Tony Baltovski
+
+0.1.13 (2020-03-27)
+-------------------
+* Revert "fix(updateStatus): Update status on diagnostics update"
+* Contributors: Tony Baltovski
+
+0.1.12 (2020-03-14)
+-------------------
+* Updated roslint to only check files in this repo.
+* Updated TravisCI config.
+* fix(updateStatus): Update status on diagnostics update
+  Otherwise the diagnostics information does not really reflect the device
+  status.
+* synchronize_time: reset when clock is warped
+  If either the hardware clock or system clock warp, reset the EMA to
+  prevent incorrect clock values from being used. Detect the warp by
+  putting a limit on the absolute error between the synchronized clock
+  and the system clock. When a warp is detected, reset the EMA to force
+  the clocks to resynchronize. Use the system clock until the EMA has
+  stabalized again.
+* synchronize system clock to hardware time
+  Remove jitter from the system clock by synchronizing it to the change
+  in hardware time stamps. This does not synchrnoize it in an absolute
+  sense (i.e., doesn't remove system latench). However, coupled with
+  calibrating system latency, this results in a stable, accurate clock.
+* Add Travis config.
+* Fixed linter errors.
+* Contributors: C. Andy Martin, Rein Appeldoorn, Tony Baltovski
+
 0.1.11 (2017-10-17)
 -------------------
 * Add support for URG-04LX in SCIP 1.1 mode
