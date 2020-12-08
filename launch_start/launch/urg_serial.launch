@@ -10,12 +10,12 @@
         <param name="calibrate_time" value="true"/>
         <param name="publish_intensity" value="false"/>
         <param name="publish_multiecho" value="false"/>
-        <param name="angle_min" value="-1.5707963"/>
-        <param name="angle_max" value="1.5707963"/>
+        <param name="angle_min" value="-3.14"/>
+        <param name="angle_max" value="3.14"/>
         <remap from="/scan" to="/scan_1"/>
     </node>
     <!-- static_transform_publisher x y z yaw pitch roll frame_id child_frame_id period_in_ms -->
-    <node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="1 0 0 0 0 0 1 base_link laser1 100" />
+    <node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="2 1 0 0.785 0 0 base_link laser1 100" />
 
     <node name="urg_node_2" pkg="urg_node" type="urg_node" output="screen">
         <param name="ip_address" value=""/>
@@ -30,11 +30,12 @@
         <remap from="/scan" to="/scan_2"/>
     </node>
     <!-- static_transform_publisher x y z yaw pitch roll frame_id child_frame_id period_in_ms -->
-    <node pkg="tf" type="static_transform_publisher" name="link2_broadcaster" args="-1 0 0 0 0 0 1 base_link laser2 100" />
+    <node pkg="tf" type="static_transform_publisher" name="link2_broadcaster" args="-2 -1 0 3.925 0 0 base_link laser2 100" />
 
-   <node name="ira_laser_tools" pkg="ira_laser_tools" type="laserscan_multi_merger"/>
-   <node name="rviz" pkg="rviz" type="rviz" args="-d /home/user/ros/multi_laser/src/20201207.rviz"/>
-   <!-- <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure"/> -->
-    <!-- 為凱好厲害唷<3  好想學 <3 快點教教我<3 -->
+    <node name="ira_laser_tools" pkg="ira_laser_tools" type="laserscan_multi_merger"/>
+    <node name="rviz" pkg="rviz" type="rviz" args="-d /home/user/ros/multi_laser/src/20201207.rviz"/>
+    <!-- <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure"/> -->
+
+    <node name="kevin_fence" pkg="kevin_fence" type="fence"/>
 
 </launch>
