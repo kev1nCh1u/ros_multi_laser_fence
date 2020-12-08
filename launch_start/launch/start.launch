@@ -15,7 +15,7 @@
         <remap from="/scan" to="/scan_1"/>
     </node>
     <!-- static_transform_publisher x y z yaw pitch roll frame_id child_frame_id period_in_ms -->
-    <node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="1 0 0 0 0 0 1 base_link laser1 100" />
+    <node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="2 1 0 0.785 0 0 base_link laser1 100" />
 
     <node name="urg_node_2" pkg="urg_node" type="urg_node" output="screen">
         <param name="ip_address" value="192.168.0.101"/>
@@ -30,7 +30,7 @@
         <remap from="/scan" to="/scan_2"/>
     </node>
     <!-- static_transform_publisher x y z yaw pitch roll frame_id child_frame_id period_in_ms -->
-    <node pkg="tf" type="static_transform_publisher" name="link2_broadcaster" args="-1 0 0 0 0 0 1 base_link laser2 100" />
+    <node pkg="tf" type="static_transform_publisher" name="link2_broadcaster" args="-2 -1 0 3.925 0 0 base_link laser2 100" />
 
    <node name="ira_laser_tools" pkg="ira_laser_tools" type="laserscan_multi_merger"/>
    <node name="rviz" pkg="rviz" type="rviz" args="-d /home/user/ros/multi_laser/src/20201207.rviz"/>

@@ -36,6 +36,6 @@
     <node name="rviz" pkg="rviz" type="rviz" args="-d /home/user/ros/multi_laser/src/20201207.rviz"/>
     <!-- <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure"/> -->
 
-    <node name="kevin_fence" pkg="kevin_fence" type="fence"/>
+    <node name="kevin_fence" pkg="kevin_fence" type="fence"  output="screen"/>
 
 </launch>
