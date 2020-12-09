@@ -10,8 +10,8 @@
         <param name="calibrate_time" value="true"/>
         <param name="publish_intensity" value="false"/>
         <param name="publish_multiecho" value="false"/>
-        <param name="angle_min" value="-1.5707963"/>
-        <param name="angle_max" value="1.5707963"/>
+        <param name="angle_min" value="-0.2707963"/>
+        <param name="angle_max" value="0.2707963"/>
         <remap from="/scan" to="/scan_1"/>
     </node>
     <!-- static_transform_publisher x y z yaw pitch roll frame_id child_frame_id period_in_ms -->
@@ -25,8 +25,8 @@
         <param name="calibrate_time" value="true"/>
         <param name="publish_intensity" value="false"/>
         <param name="publish_multiecho" value="false"/>
-        <param name="angle_min" value="-1.5707963"/>
-        <param name="angle_max" value="1.5707963"/>
+        <param name="angle_min" value="-0.2707963"/>
+        <param name="angle_max" value="0.2707963"/>
         <remap from="/scan" to="/scan_2"/>
     </node>
     <!-- static_transform_publisher x y z yaw pitch roll frame_id child_frame_id period_in_ms -->
