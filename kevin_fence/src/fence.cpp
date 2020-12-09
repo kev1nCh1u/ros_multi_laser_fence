@@ -18,7 +18,7 @@ private:
   ros::Publisher vis_pub;
   ros::Subscriber sub;
 
-  ros::Time now = ros::Time::now();
+  ros::Time now;
 
   void drawSquare(int id, int x1, int y1, int x2, int y2, int color, ros::Publisher vis_pub);
   void chatterCallback(const sensor_msgs::LaserScan &msg);
@@ -28,7 +28,7 @@ private:
   tf::TransformListener listener2;
   std::vector<tf::StampedTransform> transformVec;
 
-  int fenceRange = 2;
+  int fenceRange;
 
 public:
   KevinFence(/* args */);
@@ -37,10 +37,13 @@ public:
 
 KevinFence::KevinFence(/* args */)
 {
+  now = ros::Time::now();
 
   timer = node.createTimer(ros::Duration(1), &KevinFence::timerCallback, this);
   vis_pub = node.advertise<visualization_msgs::Marker>("visualization_marker", 0, this);
   sub = node.subscribe("scan_1", 1000, &KevinFence::chatterCallback, this);
+
+  fenceRange = 2;
 
   listener1.waitForTransform("/base_link", "/laser1", now, ros::Duration(3.0));
   listener2.waitForTransform("/base_link", "/laser2", now, ros::Duration(3.0));
