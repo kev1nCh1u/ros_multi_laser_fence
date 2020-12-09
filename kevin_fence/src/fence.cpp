@@ -7,6 +7,10 @@
 #include <tf/transform_listener.h>
 #include <visualization_msgs/Marker.h>
 #include <sensor_msgs/LaserScan.h>
+#include <sensor_msgs/PointCloud.h>
+#include <sensor_msgs/PointCloud2.h>
+#include <sensor_msgs/point_cloud_conversion.h>
+
 #include <vector>
 
 class KevinFence
@@ -16,19 +20,29 @@ private:
 
   ros::Timer timer;
   ros::Publisher vis_pub;
-  ros::Subscriber sub;
+  ros::Subscriber scan_sub;
+  ros::Subscriber merged_cloud_sub;
 
   ros::Time now;
 
-  void drawSquare(int id, int x1, int y1, int x2, int y2, int color, ros::Publisher vis_pub);
-  void chatterCallback(const sensor_msgs::LaserScan &msg);
+  void drawSquare(int id, float x1, float y1, float x2, float y2, int color, ros::Publisher vis_pub);
+  void scanSubCallback(const sensor_msgs::LaserScan &msg);
+  void mergedCloudSubCallback(const sensor_msgs::PointCloud2 &msg);
   void timerCallback(const ros::TimerEvent &);
 
   tf::TransformListener listener1;
   tf::TransformListener listener2;
   std::vector<tf::StampedTransform> transformVec;
 
-  int fenceRange;
+  float fenceRange;
+
+
+  typedef struct
+  {
+    float x;
+    float y;
+  }pos_t;
+  pos_t origin_pos[2];
 
 public:
   KevinFence(/* args */);
@@ -41,19 +55,17 @@ KevinFence::KevinFence(/* args */)
 
   timer = node.createTimer(ros::Duration(1), &KevinFence::timerCallback, this);
   vis_pub = node.advertise<visualization_msgs::Marker>("visualization_marker", 0, this);
-  sub = node.subscribe("scan_1", 1000, &KevinFence::chatterCallback, this);
+  scan_sub = node.subscribe("scan", 1000, &KevinFence::scanSubCallback, this);
+  merged_cloud_sub = node.subscribe("merged_cloud", 1000, &KevinFence::mergedCloudSubCallback, this);
 
-  fenceRange = 2;
-
-  listener1.waitForTransform("/base_link", "/laser1", now, ros::Duration(3.0));
-  listener2.waitForTransform("/base_link", "/laser2", now, ros::Duration(3.0));
+  fenceRange = 0.5;
 
   transformVec.resize(2);
   try
   {
-
+    listener1.waitForTransform("/base_link", "/laser1", now, ros::Duration(3.0));
     listener1.lookupTransform("/base_link", "/laser1", ros::Time(0), transformVec[0]);
-
+    listener2.waitForTransform("/base_link", "/laser2", now, ros::Duration(3.0));
     listener2.lookupTransform("/base_link", "/laser2", ros::Time(0), transformVec[1]);
   }
   catch (tf::TransformException ex)
@@ -61,7 +73,13 @@ KevinFence::KevinFence(/* args */)
     ROS_ERROR("%s", ex.what());
     ros::Duration(1.0).sleep();
   }
-  // std::cout << " x1:" << transformVec[0].getOrigin().x() << " y1:" << transformVec[0].getOrigin().y() << " x2:" << transformVec[1].getOrigin().x() << " y2:" << transformVec[1].getOrigin().y() << std::endl;
+
+  origin_pos[0].x = transformVec[0].getOrigin().x();
+  origin_pos[0].y = transformVec[0].getOrigin().y();
+  origin_pos[1].x = transformVec[1].getOrigin().x();
+  origin_pos[1].y = transformVec[1].getOrigin().y();
+
+  // std::cout << " x1:" << origin_pos[0].x << " y1:" << origin_pos[0].y << " x2:" << origin_pos[1].x << " y2:" << origin_pos[1].y << std::endl;
 }
 
 KevinFence::~KevinFence()
@@ -73,29 +91,64 @@ KevinFence::~KevinFence()
 * ***************************************************************************************************************************************/
 void KevinFence::timerCallback(const ros::TimerEvent &)
 {
-
-  drawSquare(0, transformVec[0].getOrigin().x(), transformVec[0].getOrigin().y(), transformVec[1].getOrigin().x(), transformVec[1].getOrigin().y(), 4, vis_pub);
-  drawSquare(1, transformVec[0].getOrigin().x() + fenceRange, transformVec[0].getOrigin().y() + fenceRange, transformVec[1].getOrigin().x() - fenceRange, transformVec[1].getOrigin().y() - fenceRange, 2, vis_pub);
+  drawSquare(0, origin_pos[0].x, origin_pos[0].y, origin_pos[1].x, origin_pos[1].y, 4, vis_pub);
+  // drawSquare(1, origin_pos[0].x + fenceRange, origin_pos[0].y + fenceRange, origin_pos[1].x - fenceRange, origin_pos[1].y - fenceRange, 2, vis_pub);
 }
 
 /****************************************************************************************************************************************
 * subscribe scan
 * ***************************************************************************************************************************************/
-void KevinFence::chatterCallback(const sensor_msgs::LaserScan &msg)
+void KevinFence::scanSubCallback(const sensor_msgs::LaserScan &msg)
 {
 
-  std::cout << " chatterCallback: ";
-  for (int i = 30; i < 50; i++)
+  // std::cout << " scanSubCallback: ";
+  // for (int i = 30; i < 50; i++)
+  // {
+  //   std::cout << msg.ranges[i] << "\t";
+  // }
+  // std::cout << std::endl;
+}
+
+/****************************************************************************************************************************************
+* subscribe mergedCloudSub
+* ***************************************************************************************************************************************/
+void KevinFence::mergedCloudSubCallback(const sensor_msgs::PointCloud2 &msg)
+{
+
+  // std::cout << " mergedCloudSubCallback: ";
+  // for (int i = 30; i < 50; i++)
+  // {
+  //   std::cout << msg.ranges[i] << "\t";
+  // }
+  // std::cout << std::endl;
+
+
+	sensor_msgs::PointCloud out_pointcloud;
+	sensor_msgs::convertPointCloud2ToPointCloud(msg, out_pointcloud);
+  int flag = 0;
+	for (int i=0; i<out_pointcloud.points.size(); i++)
   {
-    std::cout << msg.ranges[i] << "\t";
-  }
-  std::cout << std::endl;
+		// std::cout << out_pointcloud.points[i].x << ", " << out_pointcloud.points[i].y << ", " << out_pointcloud.points[i].z << std::endl;
+
+    // if(out_pointcloud.points[i].x < origin_pos[0].x + fenceRange && out_pointcloud.points[i].x > origin_pos[1].x - fenceRange)
+    if(out_pointcloud.points[i].x > origin_pos[0].x + fenceRange || out_pointcloud.points[i].x < origin_pos[1].x - fenceRange)
+      flag = 1;
+    // if(out_pointcloud.points[i].y < origin_pos[0].y + fenceRange && out_pointcloud.points[i].y > origin_pos[1].y - fenceRange)
+    if(out_pointcloud.points[i].y > origin_pos[0].y + fenceRange || out_pointcloud.points[i].y < origin_pos[1].y - fenceRange)
+      flag = 1;
+    std::cout << "flag: " << flag << std::endl;
+    if(flag)
+      drawSquare(1, origin_pos[0].x + fenceRange, origin_pos[0].y + fenceRange, origin_pos[1].x - fenceRange, origin_pos[1].y - fenceRange, 1, vis_pub);
+    else
+      drawSquare(1, origin_pos[0].x + fenceRange, origin_pos[0].y + fenceRange, origin_pos[1].x - fenceRange, origin_pos[1].y - fenceRange, 2, vis_pub);
+    
+	}
 }
 
 /****************************************************************************************************************************************
 * marker draw square
 * ***************************************************************************************************************************************/
-void KevinFence::drawSquare(int id, int x1, int y1, int x2, int y2, int color, ros::Publisher vis_pub)
+void KevinFence::drawSquare(int id, float x1, float y1, float x2, float y2, int color, ros::Publisher vis_pub)
 {
 
   visualization_msgs::Marker marker;
@@ -131,8 +184,8 @@ void KevinFence::drawSquare(int id, int x1, int y1, int x2, int y2, int color, r
   std::vector<geometry_msgs::Point> pointMsgVec(5);
   int qqX[5] = {0, 0, 1, 1, 0};
   int qqY[5] = {0, 1, 1, 0, 0};
-  int posX[2] = {x1, x2};
-  int posY[2] = {y1, y2};
+  float posX[2] = {x1, x2};
+  float posY[2] = {y1, y2};
 
   for (int i = 0; i < 5; i++)
   {
