@@ -24,5 +24,8 @@
     rosparam set hokuyo_port_1 /dev/ttyACM0
     rosparam set hokuyo_port_1 /dev/ttyACM1
 
+## sound debug
+    rostopic pub /robotsound sounplay/SoundRequest "{sound: -2, command: 1, volume: 1.0, arg: '/home/user/ros/multi_laser/src/audio_common/sound_play/sounds/excuse_me_chinese.mp3', arg2: ''}"
+
 ## debug
     rosrun rqt_tf_tree rqt_tf_tree
