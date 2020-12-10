@@ -32,11 +32,11 @@
     <!-- static_transform_publisher x y z yaw pitch roll frame_id child_frame_id period_in_ms -->
     <node pkg="tf" type="static_transform_publisher" name="link2_broadcaster" args="-2 -1 0 3.925 0 0 base_link laser2 100" />
 
-   <node name="ira_laser_tools" pkg="ira_laser_tools" type="laserscan_multi_merger"/>
-   <node name="rviz" pkg="rviz" type="rviz" args="-d /home/user/ros/multi_laser/src/20201207.rviz"/>
-   <!-- <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure"/> -->
+    <node name="ira_laser_tools" pkg="ira_laser_tools" type="laserscan_multi_merger"/>
+    <node name="rviz" pkg="rviz" type="rviz" args="-d /home/user/ros/multi_laser/src/20201207.rviz"/>
+    <!-- <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure"/> -->
 
-   <node name="kevin_fence" pkg="kevin_fence" type="fence"  output="screen"/>
-
+    <param name="fence_range" value="2"/>
+    <node name="kevin_fence" pkg="kevin_fence" type="fence"  output="screen"/>
 
 </launch>

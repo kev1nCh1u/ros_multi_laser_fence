@@ -58,7 +58,9 @@ KevinFence::KevinFence(/* args */)
   scan_sub = node.subscribe("scan", 1000, &KevinFence::scanSubCallback, this);
   merged_cloud_sub = node.subscribe("merged_cloud", 1000, &KevinFence::mergedCloudSubCallback, this);
 
-  fenceRange = 0.5;
+  // fenceRange = 0.5;
+  node.param<float>("fence_range", fenceRange, 0.5);
+  std::cout << "fence range: " << fenceRange << std::endl;
 
   transformVec.resize(2);
   try
@@ -78,8 +80,9 @@ KevinFence::KevinFence(/* args */)
   origin_pos[0].y = transformVec[0].getOrigin().y();
   origin_pos[1].x = transformVec[1].getOrigin().x();
   origin_pos[1].y = transformVec[1].getOrigin().y();
-
   // std::cout << " x1:" << origin_pos[0].x << " y1:" << origin_pos[0].y << " x2:" << origin_pos[1].x << " y2:" << origin_pos[1].y << std::endl;
+
+  drawSquare(1, origin_pos[0].x + fenceRange, origin_pos[0].y + fenceRange, origin_pos[1].x - fenceRange, origin_pos[1].y - fenceRange, 2, vis_pub);
 }
 
 KevinFence::~KevinFence()
