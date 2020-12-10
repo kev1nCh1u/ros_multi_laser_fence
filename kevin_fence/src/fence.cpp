@@ -10,6 +10,7 @@
 #include <sensor_msgs/PointCloud.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/point_cloud_conversion.h>
+// #include <sounplay/SoundRequest.h>
 
 #include <vector>
 
@@ -28,6 +29,7 @@ private:
   void drawSquare(int id, float x1, float y1, float x2, float y2, int color, ros::Publisher vis_pub);
   void scanSubCallback(const sensor_msgs::LaserScan &msg);
   void mergedCloudSubCallback(const sensor_msgs::PointCloud2 &msg);
+  // void robotsound(const sounplay::SoundRequest &msg);
   void timerCallback(const ros::TimerEvent &);
 
   tf::TransformListener listener1;
