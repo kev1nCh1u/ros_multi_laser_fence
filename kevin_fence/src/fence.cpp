@@ -41,6 +41,8 @@ private:
   tf::TransformListener listener2;
   std::vector<tf::StampedTransform> transformVec;
   float fenceRange;
+  int fenceFlag;
+  int lastFenceFlag;
   sound_play::SoundRequest sound_msg;
 
   // struct
@@ -65,15 +67,24 @@ KevinFence::KevinFence(/* args */)
   now = ros::Time::now();
 
   timer = node.createTimer(ros::Duration(1), &KevinFence::timerCallback, this);
-  soundTimer = node.createTimer(ros::Duration(5), &KevinFence::soundTimerCallback, this);
+  soundTimer = node.createTimer(ros::Duration(3), &KevinFence::soundTimerCallback, this);
   vis_pub = node.advertise<visualization_msgs::Marker>("visualization_marker", 0, this);
   scan_sub = node.subscribe("scan", 1000, &KevinFence::scanSubCallback, this);
   merged_cloud_sub = node.subscribe("merged_cloud", 1000, &KevinFence::mergedCloudSubCallback, this);
   robotSound_pub = node.advertise<sound_play::SoundRequest>("robotsound", 0, this);
 
-  // var
+  // param
   node.param<float>("fence_range", fenceRange, 0.5);
+
+  // print param
   std::cout << "fence range: " << fenceRange << std::endl;
+
+  // msg
+  // {sound: -2, command: 2, volume: 1.0, arg: '/home/user/ros/multi_laser/src/audio_common/sound_play/sounds/excuse_me_ryotsu.wav', arg2: ''};
+  sound_msg.sound = -2;
+  sound_msg.command = 1;
+  sound_msg.volume = 1.0;
+  sound_msg.arg = "/home/user/ros/multi_laser/src/audio_common/sound_play/sounds/excuse_me_ryotsu.wav";
 
   // tf
   transformVec.resize(2);
@@ -99,14 +110,6 @@ KevinFence::KevinFence(/* args */)
 
   // draw
   drawSquare(1, origin_pos[0].x + fenceRange, origin_pos[0].y + fenceRange, origin_pos[1].x - fenceRange, origin_pos[1].y - fenceRange, 2, vis_pub);
-
-  // msg
-  // {sound: -2, command: 2, volume: 1.0, arg: '/home/user/ros/multi_laser/src/audio_common/sound_play/sounds/excuse_me_ryotsu.wav', arg2: ''};
-  sound_msg.sound = -2;
-  sound_msg.command = 2;
-  sound_msg.volume = 1.0;
-  sound_msg.arg = "/home/user/ros/multi_laser/src/audio_common/sound_play/sounds/excuse_me_ryotsu.wav";
-  robotSound_pub.publish(sound_msg);
 }
 
 KevinFence::~KevinFence()
@@ -119,15 +122,20 @@ KevinFence::~KevinFence()
 void KevinFence::timerCallback(const ros::TimerEvent &)
 {
   drawSquare(0, origin_pos[0].x, origin_pos[0].y, origin_pos[1].x, origin_pos[1].y, 4, vis_pub);
-  // drawSquare(1, origin_pos[0].x + fenceRange, origin_pos[0].y + fenceRange, origin_pos[1].x - fenceRange, origin_pos[1].y - fenceRange, 2, vis_pub);
+
+  if(fenceFlag)
+    drawSquare(1, origin_pos[0].x + fenceRange, origin_pos[0].y + fenceRange, origin_pos[1].x - fenceRange, origin_pos[1].y - fenceRange, 1, vis_pub);
+  else
+    drawSquare(1, origin_pos[0].x + fenceRange, origin_pos[0].y + fenceRange, origin_pos[1].x - fenceRange, origin_pos[1].y - fenceRange, 2, vis_pub);
 }
 
 /***************************************************************************************************************************************
 * timer
 * ***************************************************************************************************************************************/
 void KevinFence::soundTimerCallback(const ros::TimerEvent &)
-{
-  robotSound_pub.publish(sound_msg);
+{ 
+  // if(fenceFlag)
+    robotSound_pub.publish(sound_msg);
 }
 
 /****************************************************************************************************************************************
@@ -171,13 +179,21 @@ void KevinFence::mergedCloudSubCallback(const sensor_msgs::PointCloud2 &msg)
     if(out_pointcloud.points[i].y < origin_pos[0].y + fenceRange && out_pointcloud.points[i].y > origin_pos[1].y - fenceRange)
     // if(out_pointcloud.points[i].y > origin_pos[0].y + fenceRange || out_pointcloud.points[i].y < origin_pos[1].y - fenceRange)
       flag += 1;
-    std::cout << "flag: " << flag << std::endl;
+    // std::cout << "flag: " << flag << std::endl;
 	}
   if(flag > 50)
-    drawSquare(1, origin_pos[0].x + fenceRange, origin_pos[0].y + fenceRange, origin_pos[1].x - fenceRange, origin_pos[1].y - fenceRange, 1, vis_pub);
+  {
+    fenceFlag = 1;
+    soundTimer.start();
+    if(lastFenceFlag < fenceFlag)
+      robotSound_pub.publish(sound_msg);
+  }
   else
-    drawSquare(1, origin_pos[0].x + fenceRange, origin_pos[0].y + fenceRange, origin_pos[1].x - fenceRange, origin_pos[1].y - fenceRange, 2, vis_pub);
-    
+  {
+    fenceFlag = 0;
+    soundTimer.stop();
+  }
+  lastFenceFlag = fenceFlag;
 }
 
 /****************************************************************************************************************************************
