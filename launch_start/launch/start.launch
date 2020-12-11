@@ -38,7 +38,10 @@
 
     <node name="sound_play" pkg="sound_play" type="soundplay_node.py"  output="screen"/>
 
-    <param name="fence_range" value="0.5"/>
-    <node name="kevin_fence" pkg="kevin_fence" type="fence"  output="screen"/>
+    <node name="kevin_fence" pkg="kevin_fence" type="fence"  output="screen">
+        <param name="fence_range" value="0.5"/>
+        <param name="fence_count" value="50"/>
+        <param name="sound_file" value=""/>
+    </node>
 
 </launch>

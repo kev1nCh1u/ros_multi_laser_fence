@@ -19,6 +19,7 @@ class KevinFence
 private:
   // ros
   ros::NodeHandle node;
+  ros::NodeHandle pnh_;
 
   ros::Timer timer;
   ros::Timer soundTimer;
@@ -41,6 +42,7 @@ private:
   tf::TransformListener listener2;
   std::vector<tf::StampedTransform> transformVec;
   float fenceRange;
+  int fenceCount;
   int fenceFlag;
   int lastFenceFlag;
   sound_play::SoundRequest sound_msg;
@@ -61,7 +63,7 @@ public:
 /****************************************************************************************************************************************
 * KevinFence KevinFence
 * ***************************************************************************************************************************************/
-KevinFence::KevinFence(/* args */)
+KevinFence::KevinFence(/* args */):pnh_("~")
 { 
   // ros
   now = ros::Time::now();
@@ -74,17 +76,22 @@ KevinFence::KevinFence(/* args */)
   robotSound_pub = node.advertise<sound_play::SoundRequest>("robotsound", 0, this);
 
   // param
-  node.param<float>("fence_range", fenceRange, 0.5);
+  pnh_.param<float>("fence_range", fenceRange, 0.5);
+  pnh_.param<int>("fence_count", fenceCount, 50);
+  pnh_.param<std::string>("sound_file", sound_msg.arg, "/home/user/ros/multi_laser/src/audio_common/sound_play/sounds/ts_excuse_me_chinese.wav");
 
   // print param
-  std::cout << "fence range: " << fenceRange << std::endl;
+  std::cout << "########## param ################" << std::endl;
+  std::cout << "fenceRange: " << fenceRange << std::endl;
+  std::cout << "fenceCount: " << fenceCount << std::endl;
+  std::cout << "sound_msg.arg: " << sound_msg.arg << std::endl;
+  std::cout << "#################################" << std::endl;
 
   // msg
-  // {sound: -2, command: 2, volume: 1.0, arg: '/home/user/ros/multi_laser/src/audio_common/sound_play/sounds/excuse_me_ryotsu.wav', arg2: ''};
   sound_msg.sound = -2;
   sound_msg.command = 1;
   sound_msg.volume = 1.0;
-  sound_msg.arg = "/home/user/ros/multi_laser/src/audio_common/sound_play/sounds/excuse_me_ryotsu.wav";
+  // sound_msg.arg = "/home/user/ros/multi_laser/src/audio_common/sound_play/sounds/excuse_me_ryotsu.wav";
 
   // tf
   transformVec.resize(2);
@@ -168,20 +175,20 @@ void KevinFence::mergedCloudSubCallback(const sensor_msgs::PointCloud2 &msg)
 
 	sensor_msgs::PointCloud out_pointcloud;
 	sensor_msgs::convertPointCloud2ToPointCloud(msg, out_pointcloud);
-  int flag = 0;
+  int pointCount = 0;
 	for (int i=0; i<out_pointcloud.points.size(); i++)
   {
 		// std::cout << out_pointcloud.points[i].x << ", " << out_pointcloud.points[i].y << ", " << out_pointcloud.points[i].z << std::endl;
 
     if(out_pointcloud.points[i].x < origin_pos[0].x + fenceRange && out_pointcloud.points[i].x > origin_pos[1].x - fenceRange)
     // if(out_pointcloud.points[i].x > origin_pos[0].x + fenceRange || out_pointcloud.points[i].x < origin_pos[1].x - fenceRange)
-      flag += 1;
+      pointCount += 1;
     if(out_pointcloud.points[i].y < origin_pos[0].y + fenceRange && out_pointcloud.points[i].y > origin_pos[1].y - fenceRange)
     // if(out_pointcloud.points[i].y > origin_pos[0].y + fenceRange || out_pointcloud.points[i].y < origin_pos[1].y - fenceRange)
-      flag += 1;
-    // std::cout << "flag: " << flag << std::endl;
+      pointCount += 1;
+    // std::cout << "pointCount: " << pointCount << std::endl;
 	}
-  if(flag > 50)
+  if(pointCount > fenceCount)
   {
     fenceFlag = 1;
     soundTimer.start();
