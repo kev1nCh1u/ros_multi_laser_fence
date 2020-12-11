@@ -62,6 +62,8 @@
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>tf</exec_depend>
 
+  <depend>diagnostic_msgs</depend>
+  <exec_depend>sound_play</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

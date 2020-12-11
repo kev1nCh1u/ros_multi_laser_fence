@@ -10,35 +10,40 @@
 #include <sensor_msgs/PointCloud.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/point_cloud_conversion.h>
-// #include <sounplay/SoundRequest.h>
+#include <sound_play/SoundRequest.h>
 
 #include <vector>
 
 class KevinFence
 {
 private:
+  // ros
   ros::NodeHandle node;
 
   ros::Timer timer;
+  ros::Timer soundTimer;
   ros::Publisher vis_pub;
   ros::Subscriber scan_sub;
   ros::Subscriber merged_cloud_sub;
+  ros::Publisher robotSound_pub;
 
   ros::Time now;
 
+  // fuc
+  void timerCallback(const ros::TimerEvent &);
+  void soundTimerCallback(const ros::TimerEvent &);
   void drawSquare(int id, float x1, float y1, float x2, float y2, int color, ros::Publisher vis_pub);
   void scanSubCallback(const sensor_msgs::LaserScan &msg);
   void mergedCloudSubCallback(const sensor_msgs::PointCloud2 &msg);
-  // void robotsound(const sounplay::SoundRequest &msg);
-  void timerCallback(const ros::TimerEvent &);
 
+  // var
   tf::TransformListener listener1;
   tf::TransformListener listener2;
   std::vector<tf::StampedTransform> transformVec;
-
   float fenceRange;
+  sound_play::SoundRequest sound_msg;
 
-
+  // struct
   typedef struct
   {
     float x;
@@ -51,19 +56,26 @@ public:
   ~KevinFence();
 };
 
+/****************************************************************************************************************************************
+* KevinFence KevinFence
+* ***************************************************************************************************************************************/
 KevinFence::KevinFence(/* args */)
-{
+{ 
+  // ros
   now = ros::Time::now();
 
   timer = node.createTimer(ros::Duration(1), &KevinFence::timerCallback, this);
+  soundTimer = node.createTimer(ros::Duration(5), &KevinFence::soundTimerCallback, this);
   vis_pub = node.advertise<visualization_msgs::Marker>("visualization_marker", 0, this);
   scan_sub = node.subscribe("scan", 1000, &KevinFence::scanSubCallback, this);
   merged_cloud_sub = node.subscribe("merged_cloud", 1000, &KevinFence::mergedCloudSubCallback, this);
+  robotSound_pub = node.advertise<sound_play::SoundRequest>("robotsound", 0, this);
 
-  // fenceRange = 0.5;
+  // var
   node.param<float>("fence_range", fenceRange, 0.5);
   std::cout << "fence range: " << fenceRange << std::endl;
 
+  // tf
   transformVec.resize(2);
   try
   {
@@ -78,13 +90,23 @@ KevinFence::KevinFence(/* args */)
     ros::Duration(1.0).sleep();
   }
 
+  // get tf org
   origin_pos[0].x = transformVec[0].getOrigin().x();
   origin_pos[0].y = transformVec[0].getOrigin().y();
   origin_pos[1].x = transformVec[1].getOrigin().x();
   origin_pos[1].y = transformVec[1].getOrigin().y();
   // std::cout << " x1:" << origin_pos[0].x << " y1:" << origin_pos[0].y << " x2:" << origin_pos[1].x << " y2:" << origin_pos[1].y << std::endl;
 
+  // draw
   drawSquare(1, origin_pos[0].x + fenceRange, origin_pos[0].y + fenceRange, origin_pos[1].x - fenceRange, origin_pos[1].y - fenceRange, 2, vis_pub);
+
+  // msg
+  // {sound: -2, command: 2, volume: 1.0, arg: '/home/user/ros/multi_laser/src/audio_common/sound_play/sounds/excuse_me_ryotsu.wav', arg2: ''};
+  sound_msg.sound = -2;
+  sound_msg.command = 2;
+  sound_msg.volume = 1.0;
+  sound_msg.arg = "/home/user/ros/multi_laser/src/audio_common/sound_play/sounds/excuse_me_ryotsu.wav";
+  robotSound_pub.publish(sound_msg);
 }
 
 KevinFence::~KevinFence()
@@ -98,6 +120,14 @@ void KevinFence::timerCallback(const ros::TimerEvent &)
 {
   drawSquare(0, origin_pos[0].x, origin_pos[0].y, origin_pos[1].x, origin_pos[1].y, 4, vis_pub);
   // drawSquare(1, origin_pos[0].x + fenceRange, origin_pos[0].y + fenceRange, origin_pos[1].x - fenceRange, origin_pos[1].y - fenceRange, 2, vis_pub);
+}
+
+/***************************************************************************************************************************************
+* timer
+* ***************************************************************************************************************************************/
+void KevinFence::soundTimerCallback(const ros::TimerEvent &)
+{
+  robotSound_pub.publish(sound_msg);
 }
 
 /****************************************************************************************************************************************

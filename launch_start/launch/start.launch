@@ -36,6 +36,8 @@
     <node name="rviz" pkg="rviz" type="rviz" args="-d /home/user/ros/multi_laser/src/20201207.rviz"/>
     <!-- <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure"/> -->
 
+    <node name="sound_play" pkg="sound_play" type="soundplay_node.py"  output="screen"/>
+
     <param name="fence_range" value="2"/>
     <node name="kevin_fence" pkg="kevin_fence" type="fence"  output="screen"/>
 

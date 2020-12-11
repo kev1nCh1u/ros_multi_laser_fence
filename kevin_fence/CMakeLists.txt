@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   tf
+  diagnostic_msgs
   sound_play
 )
 
@@ -107,7 +108,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES kevin_fence
-#  CATKIN_DEPENDS roscpp rospy std_msgs tf
+CATKIN_DEPENDS roscpp rospy std_msgs tf diagnostic_msgs
 #  DEPENDS system_lib
 )
 
