@@ -41,7 +41,7 @@
     <node name="kevin_fence" pkg="kevin_fence" type="fence"  output="screen">
         <param name="fence_range" value="0.5"/>
         <param name="fence_count" value="50"/>
-        <param name="sound_file" value=""/>
+        <param name="sound_file" value="/home/user/ros/multi_laser/src/audio_common/sound_play/sounds/ts_excuse_me_chinese.wav"/>
     </node>
 
 </launch>
