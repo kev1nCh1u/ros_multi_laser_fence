@@ -1,4 +1,4 @@
-# multi laser
+# multi laser fence
 
 ## chmod
     sudo chmod 777 /dev/ttyACM0
