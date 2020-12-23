@@ -31,8 +31,6 @@ private:
   ros::Subscriber merged_cloud_sub;
   ros::Publisher robotSound_pub;
 
-  ros::Time now;
-
   // fuc
   void timerCallback(const ros::TimerEvent &);
   void soundTimerCallback(const ros::TimerEvent &);
@@ -41,6 +39,7 @@ private:
   void mergedCloudSubCallback(const sensor_msgs::PointCloud2 &msg);
 
   // var
+  ros::Time now;
   tf::TransformListener listener1;
   tf::TransformListener listener2;
   std::vector<tf::StampedTransform> transformVec;
