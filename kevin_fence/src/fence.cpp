@@ -34,7 +34,7 @@ private:
   // fuc
   void timerCallback(const ros::TimerEvent &);
   void soundTimerCallback(const ros::TimerEvent &);
-  void drawSquare(int id, float x1, float y1, float x2, float y2, int color, ros::Publisher vis_pub);
+  void drawSquare(int id, double x1, double y1, double x2, double y2, int color, ros::Publisher vis_pub);
   void scanSubCallback(const sensor_msgs::LaserScan &msg);
   void mergedCloudSubCallback(const sensor_msgs::PointCloud2 &msg);
 
@@ -43,7 +43,7 @@ private:
   tf::TransformListener listener1;
   tf::TransformListener listener2;
   std::vector<tf::StampedTransform> transformVec;
-  float fenceRange;
+  double fenceRange;
   int fenceCount;
   int fenceFlag;
   int lastFenceFlag;
@@ -52,8 +52,8 @@ private:
   // struct
   typedef struct
   {
-    float x;
-    float y;
+    double x;
+    double y;
   }pos_t;
   pos_t origin_pos[2];
 
@@ -78,7 +78,7 @@ KevinFence::KevinFence(/* args */):pnh_("~")
   robotSound_pub = node.advertise<sound_play::SoundRequest>("robotsound", 0, this);
 
   // param
-  pnh_.param<float>("fence_range", fenceRange, 0.5);
+  pnh_.param<double>("fence_range", fenceRange, 0.5);
   pnh_.param<int>("fence_count", fenceCount, 50);
   pnh_.param<std::string>("sound_file", sound_msg.arg, "/home/user/ros/multi_laser/src/audio_common/sound_play/sounds/ts_excuse_me_chinese.wav");
 
@@ -182,16 +182,50 @@ void KevinFence::mergedCloudSubCallback(const sensor_msgs::PointCloud2 &msg)
   {
 		// std::cout << out_pointcloud.points[i].x << ", " << out_pointcloud.points[i].y << ", " << out_pointcloud.points[i].z << std::endl;
 
-    if(out_pointcloud.points[i].x < origin_pos[0].x + fenceRange && out_pointcloud.points[i].x > origin_pos[1].x - fenceRange)
-    // if(out_pointcloud.points[i].x > origin_pos[0].x + fenceRange || out_pointcloud.points[i].x < origin_pos[1].x - fenceRange)
-      pointCount += 1;
-    if(out_pointcloud.points[i].y < origin_pos[0].y + fenceRange && out_pointcloud.points[i].y > origin_pos[1].y - fenceRange)
-    // if(out_pointcloud.points[i].y > origin_pos[0].y + fenceRange || out_pointcloud.points[i].y < origin_pos[1].y - fenceRange)
-      pointCount += 1;
+    // if((out_pointcloud.points[i].x < (origin_pos[0].x + fenceRange)) && (out_pointcloud.points[i].y < (origin_pos[0].y + fenceRange)))
+    // {
+    // // if(out_pointcloud.points[i].x > origin_pos[0].x + fenceRange || out_pointcloud.points[i].x < origin_pos[1].x - fenceRange)
+    //   pointCount += 1;
+    //   std::cout << out_pointcloud.points[i].x << ", " << out_pointcloud.points[i].y << ", " << out_pointcloud.points[i].z << std::endl;
+    // }
+    
+    // if((out_pointcloud.points[i].x < (origin_pos[1].x + fenceRange)) && (out_pointcloud.points[i].y < (origin_pos[1].y + fenceRange)))
+    // {
+    // // if(out_pointcloud.points[i].x > origin_pos[0].x + fenceRange || out_pointcloud.points[i].x < origin_pos[1].x - fenceRange)
+    //   pointCount += 1;
+    //   std::cout << out_pointcloud.points[i].x << ", " << out_pointcloud.points[i].y << ", " << out_pointcloud.points[i].z << std::endl;
+    // }
+
+    //double angle = atan2(out_pointcloud.points[i].y,out_pointcloud.points[i].x);
+    //std::cout << angle << std::endl;
+
+    if((out_pointcloud.points[i].x < (origin_pos[0].x + fenceRange)) && (out_pointcloud.points[i].x > (origin_pos[1].x - fenceRange)) ){
+        if((out_pointcloud.points[i].y < (origin_pos[0].y + fenceRange)) && (out_pointcloud.points[i].y > (origin_pos[1].y - fenceRange)) ){
+            pointCount++;
+            std::cout << origin_pos[0].x + fenceRange << ";" << (origin_pos[1].x - fenceRange) << "=" << origin_pos[1].y << "====="  << (origin_pos[0].y + fenceRange) <<";"<< (origin_pos[1].y - fenceRange)<< std::endl;
+            std::cout << out_pointcloud.points[i].x << ", " << out_pointcloud.points[i].y << ", " << out_pointcloud.points[i].z << fenceRange << std::endl;
+        }
+    }
+
+    // if(out_pointcloud.points[i].x < origin_pos[0].x + fenceRange && out_pointcloud.points[i].x > origin_pos[1].x - fenceRange)
+    // {
+    // // if(out_pointcloud.points[i].x > origin_pos[0].x + fenceRange || out_pointcloud.points[i].x < origin_pos[1].x - fenceRange)
+    //   pointCount += 1;
+    //   std::cout << out_pointcloud.points[i].x << ", " << out_pointcloud.points[i].y << ", " << out_pointcloud.points[i].z << std::endl;
+    // }
+    // if(out_pointcloud.points[i].y < origin_pos[0].y + fenceRange && out_pointcloud.points[i].y > origin_pos[1].y - fenceRange)
+    // {
+    // // if(out_pointcloud.points[i].y > origin_pos[0].y + fenceRange || out_pointcloud.points[i].y < origin_pos[1].y - fenceRange)
+    //   pointCount += 1;
+    //   std::cout << out_pointcloud.points[i].x << ", " << out_pointcloud.points[i].y << ", " << out_pointcloud.points[i].z << std::endl;
+    // }
     // std::cout << "pointCount: " << pointCount << std::endl;
 	}
+  std::cout << "===================" << std::endl;
+  
   if(pointCount > fenceCount)
   {
+    // std::cout << pointCount << std::endl;
     fenceFlag = 1;
     soundTimer.start();
     if(lastFenceFlag < fenceFlag)
@@ -208,7 +242,7 @@ void KevinFence::mergedCloudSubCallback(const sensor_msgs::PointCloud2 &msg)
 /****************************************************************************************************************************************
 * marker draw square
 * ***************************************************************************************************************************************/
-void KevinFence::drawSquare(int id, float x1, float y1, float x2, float y2, int color, ros::Publisher vis_pub)
+void KevinFence::drawSquare(int id, double x1, double y1, double x2, double y2, int color, ros::Publisher vis_pub)
 {
 
   visualization_msgs::Marker marker;
@@ -244,8 +278,8 @@ void KevinFence::drawSquare(int id, float x1, float y1, float x2, float y2, int 
   std::vector<geometry_msgs::Point> pointMsgVec(5);
   int qqX[5] = {0, 0, 1, 1, 0};
   int qqY[5] = {0, 1, 1, 0, 0};
-  float posX[2] = {x1, x2};
-  float posY[2] = {y1, y2};
+  double posX[2] = {x1, x2};
+  double posY[2] = {y1, y2};
 
   for (int i = 0; i < 5; i++)
   {
