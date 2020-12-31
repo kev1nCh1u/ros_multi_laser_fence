@@ -54,7 +54,7 @@ private:
   {
     double x;
     double y;
-  }pos_t;
+  } pos_t;
   pos_t origin_pos[2];
 
 public:
@@ -65,8 +65,8 @@ public:
 /****************************************************************************************************************************************
 * KevinFence KevinFence
 * ***************************************************************************************************************************************/
-KevinFence::KevinFence(/* args */):pnh_("~")
-{ 
+KevinFence::KevinFence(/* args */) : pnh_("~")
+{
   // ros
   now = ros::Time::now();
 
@@ -132,7 +132,7 @@ void KevinFence::timerCallback(const ros::TimerEvent &)
 {
   drawSquare(0, origin_pos[0].x, origin_pos[0].y, origin_pos[1].x, origin_pos[1].y, 4, vis_pub);
 
-  if(fenceFlag)
+  if (fenceFlag)
     drawSquare(1, origin_pos[0].x + fenceRange, origin_pos[0].y + fenceRange, origin_pos[1].x - fenceRange, origin_pos[1].y - fenceRange, 1, vis_pub);
   else
     drawSquare(1, origin_pos[0].x + fenceRange, origin_pos[0].y + fenceRange, origin_pos[1].x - fenceRange, origin_pos[1].y - fenceRange, 2, vis_pub);
@@ -142,9 +142,9 @@ void KevinFence::timerCallback(const ros::TimerEvent &)
 * timer
 * ***************************************************************************************************************************************/
 void KevinFence::soundTimerCallback(const ros::TimerEvent &)
-{ 
+{
   // if(fenceFlag)
-    robotSound_pub.publish(sound_msg);
+  robotSound_pub.publish(sound_msg);
 }
 
 /****************************************************************************************************************************************
@@ -174,37 +174,21 @@ void KevinFence::mergedCloudSubCallback(const sensor_msgs::PointCloud2 &msg)
   // }
   // std::cout << std::endl;
 
-
-	sensor_msgs::PointCloud out_pointcloud;
-	sensor_msgs::convertPointCloud2ToPointCloud(msg, out_pointcloud);
+  sensor_msgs::PointCloud out_pointcloud;
+  sensor_msgs::convertPointCloud2ToPointCloud(msg, out_pointcloud);
   int pointCount = 0;
-	for (int i=0; i<out_pointcloud.points.size(); i++)
+  for (int i = 0; i < out_pointcloud.points.size(); i++)
   {
-		// std::cout << out_pointcloud.points[i].x << ", " << out_pointcloud.points[i].y << ", " << out_pointcloud.points[i].z << std::endl;
+    // std::cout << out_pointcloud.points[i].x << ", " << out_pointcloud.points[i].y << ", " << out_pointcloud.points[i].z << std::endl;
 
-    // if((out_pointcloud.points[i].x < (origin_pos[0].x + fenceRange)) && (out_pointcloud.points[i].y < (origin_pos[0].y + fenceRange)))
-    // {
-    // // if(out_pointcloud.points[i].x > origin_pos[0].x + fenceRange || out_pointcloud.points[i].x < origin_pos[1].x - fenceRange)
-    //   pointCount += 1;
-    //   std::cout << out_pointcloud.points[i].x << ", " << out_pointcloud.points[i].y << ", " << out_pointcloud.points[i].z << std::endl;
-    // }
-    
-    // if((out_pointcloud.points[i].x < (origin_pos[1].x + fenceRange)) && (out_pointcloud.points[i].y < (origin_pos[1].y + fenceRange)))
-    // {
-    // // if(out_pointcloud.points[i].x > origin_pos[0].x + fenceRange || out_pointcloud.points[i].x < origin_pos[1].x - fenceRange)
-    //   pointCount += 1;
-    //   std::cout << out_pointcloud.points[i].x << ", " << out_pointcloud.points[i].y << ", " << out_pointcloud.points[i].z << std::endl;
-    // }
-
-    //double angle = atan2(out_pointcloud.points[i].y,out_pointcloud.points[i].x);
-    //std::cout << angle << std::endl;
-
-    if((out_pointcloud.points[i].x < (origin_pos[0].x + fenceRange)) && (out_pointcloud.points[i].x > (origin_pos[1].x - fenceRange)) ){
-        if((out_pointcloud.points[i].y < (origin_pos[0].y + fenceRange)) && (out_pointcloud.points[i].y > (origin_pos[1].y - fenceRange)) ){
-            pointCount++;
-            std::cout << origin_pos[0].x + fenceRange << ";" << (origin_pos[1].x - fenceRange) << "=" << origin_pos[1].y << "====="  << (origin_pos[0].y + fenceRange) <<";"<< (origin_pos[1].y - fenceRange)<< std::endl;
-            std::cout << out_pointcloud.points[i].x << ", " << out_pointcloud.points[i].y << ", " << out_pointcloud.points[i].z << fenceRange << std::endl;
-        }
+    if ((out_pointcloud.points[i].x < (origin_pos[0].x + fenceRange)) && (out_pointcloud.points[i].x > (origin_pos[1].x - fenceRange)))
+    {
+      if ((out_pointcloud.points[i].y < (origin_pos[0].y + fenceRange)) && (out_pointcloud.points[i].y > (origin_pos[1].y - fenceRange)))
+      {
+        pointCount++;
+        // std::cout << origin_pos[0].x + fenceRange << ";" << (origin_pos[1].x - fenceRange) << "=" << origin_pos[1].y << "====="  << (origin_pos[0].y + fenceRange) <<";"<< (origin_pos[1].y - fenceRange)<< std::endl;
+        // std::cout << out_pointcloud.points[i].x << ", " << out_pointcloud.points[i].y << ", " << out_pointcloud.points[i].z << fenceRange << std::endl;
+      }
     }
 
     // if(out_pointcloud.points[i].x < origin_pos[0].x + fenceRange && out_pointcloud.points[i].x > origin_pos[1].x - fenceRange)
@@ -220,15 +204,15 @@ void KevinFence::mergedCloudSubCallback(const sensor_msgs::PointCloud2 &msg)
     //   std::cout << out_pointcloud.points[i].x << ", " << out_pointcloud.points[i].y << ", " << out_pointcloud.points[i].z << std::endl;
     // }
     // std::cout << "pointCount: " << pointCount << std::endl;
-	}
-  std::cout << "===================" << std::endl;
-  
-  if(pointCount > fenceCount)
+  }
+  // std::cout << "===================" << std::endl;
+
+  if (pointCount > fenceCount)
   {
     // std::cout << pointCount << std::endl;
     fenceFlag = 1;
     soundTimer.start();
-    if(lastFenceFlag < fenceFlag)
+    if (lastFenceFlag < fenceFlag)
       robotSound_pub.publish(sound_msg);
   }
   else
