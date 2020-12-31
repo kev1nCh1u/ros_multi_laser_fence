@@ -77,8 +77,9 @@ KevinFence::KevinFence(/* args */) : pnh_("~")
   merged_cloud_sub = node.subscribe("merged_cloud", 1000, &KevinFence::mergedCloudSubCallback, this);
   robotSound_pub = node.advertise<sound_play::SoundRequest>("robotsound", 0, this);
 
-  // param
-  pnh_.param<double>("fence_range", fenceRange, 0.5);
+  // get param
+  pnh_.param<double>("fence_range_height", fenceRange, 0.5);
+  pnh_.param<double>("fence_range_width", fenceRange, 0.5);
   pnh_.param<int>("fence_count", fenceCount, 50);
   pnh_.param<std::string>("sound_file", sound_msg.arg, "/home/user/ros/multi_laser/src/audio_common/sound_play/sounds/ts_excuse_me_chinese.wav");
 
@@ -89,7 +90,7 @@ KevinFence::KevinFence(/* args */) : pnh_("~")
   std::cout << "sound_msg.arg: " << sound_msg.arg << std::endl;
   std::cout << "#################################" << std::endl;
 
-  // msg
+  // msg set
   sound_msg.sound = -2;
   sound_msg.command = 1;
   sound_msg.volume = 1.0;
@@ -100,9 +101,9 @@ KevinFence::KevinFence(/* args */) : pnh_("~")
   try
   {
     listener1.waitForTransform("/base_link", "/laser1", now, ros::Duration(3.0));
-    listener1.lookupTransform("/base_link", "/laser1", ros::Time(0), transformVec[0]);
+    listener1.lookupTransform("/base_link", "/laser1", ros::Time(0), transformVec[0]); // laser1 to base link
     listener2.waitForTransform("/base_link", "/laser2", now, ros::Duration(3.0));
-    listener2.lookupTransform("/base_link", "/laser2", ros::Time(0), transformVec[1]);
+    listener2.lookupTransform("/base_link", "/laser2", ros::Time(0), transformVec[1]); // laser2 to base link
   }
   catch (tf::TransformException ex)
   {
@@ -115,7 +116,7 @@ KevinFence::KevinFence(/* args */) : pnh_("~")
   origin_pos[0].y = transformVec[0].getOrigin().y();
   origin_pos[1].x = transformVec[1].getOrigin().x();
   origin_pos[1].y = transformVec[1].getOrigin().y();
-  // std::cout << " x1:" << origin_pos[0].x << " y1:" << origin_pos[0].y << " x2:" << origin_pos[1].x << " y2:" << origin_pos[1].y << std::endl;
+  // std::cout << " x1:" << origin_pos[0].x << " y1:" << origin_pos[0].y << " x2:" << origin_pos[1].x << " y2:" << origin_pos[1].y << std::endl; // debug print
 
   // draw
   drawSquare(1, origin_pos[0].x + fenceRange, origin_pos[0].y + fenceRange, origin_pos[1].x - fenceRange, origin_pos[1].y - fenceRange, 2, vis_pub);
@@ -130,8 +131,9 @@ KevinFence::~KevinFence()
 * ***************************************************************************************************************************************/
 void KevinFence::timerCallback(const ros::TimerEvent &)
 {
-  drawSquare(0, origin_pos[0].x, origin_pos[0].y, origin_pos[1].x, origin_pos[1].y, 4, vis_pub);
+  drawSquare(0, origin_pos[0].x, origin_pos[0].y, origin_pos[1].x, origin_pos[1].y, 4, vis_pub); // draw the car
 
+  // draw the fence
   if (fenceFlag)
     drawSquare(1, origin_pos[0].x + fenceRange, origin_pos[0].y + fenceRange, origin_pos[1].x - fenceRange, origin_pos[1].y - fenceRange, 1, vis_pub);
   else
@@ -139,7 +141,7 @@ void KevinFence::timerCallback(const ros::TimerEvent &)
 }
 
 /***************************************************************************************************************************************
-* timer
+* sound timer
 * ***************************************************************************************************************************************/
 void KevinFence::soundTimerCallback(const ros::TimerEvent &)
 {
@@ -166,7 +168,9 @@ void KevinFence::scanSubCallback(const sensor_msgs::LaserScan &msg)
 * ***************************************************************************************************************************************/
 void KevinFence::mergedCloudSubCallback(const sensor_msgs::PointCloud2 &msg)
 {
-
+  // std::cout << "===================" << std::endl; // debug print
+  
+  // print all point
   // std::cout << " mergedCloudSubCallback: ";
   // for (int i = 30; i < 50; i++)
   // {
@@ -174,53 +178,38 @@ void KevinFence::mergedCloudSubCallback(const sensor_msgs::PointCloud2 &msg)
   // }
   // std::cout << std::endl;
 
-  sensor_msgs::PointCloud out_pointcloud;
-  sensor_msgs::convertPointCloud2ToPointCloud(msg, out_pointcloud);
-  int pointCount = 0;
+  sensor_msgs::PointCloud out_pointcloud; // create a pointclound
+  sensor_msgs::convertPointCloud2ToPointCloud(msg, out_pointcloud); //pointclound2 to pointclound
+  int pointCount = 0; // how many point
   for (int i = 0; i < out_pointcloud.points.size(); i++)
   {
     // std::cout << out_pointcloud.points[i].x << ", " << out_pointcloud.points[i].y << ", " << out_pointcloud.points[i].z << std::endl;
 
-    if ((out_pointcloud.points[i].x < (origin_pos[0].x + fenceRange)) && (out_pointcloud.points[i].x > (origin_pos[1].x - fenceRange)))
+    if ((out_pointcloud.points[i].x < (origin_pos[0].x + fenceRange)) && (out_pointcloud.points[i].x > (origin_pos[1].x - fenceRange))) // if x point inside the fence
     {
-      if ((out_pointcloud.points[i].y < (origin_pos[0].y + fenceRange)) && (out_pointcloud.points[i].y > (origin_pos[1].y - fenceRange)))
+      if ((out_pointcloud.points[i].y < (origin_pos[0].y + fenceRange)) && (out_pointcloud.points[i].y > (origin_pos[1].y - fenceRange))) // if y point inside the fence
       {
-        pointCount++;
-        // std::cout << origin_pos[0].x + fenceRange << ";" << (origin_pos[1].x - fenceRange) << "=" << origin_pos[1].y << "====="  << (origin_pos[0].y + fenceRange) <<";"<< (origin_pos[1].y - fenceRange)<< std::endl;
-        // std::cout << out_pointcloud.points[i].x << ", " << out_pointcloud.points[i].y << ", " << out_pointcloud.points[i].z << fenceRange << std::endl;
+        pointCount++; // how many point ++
+        // std::cout << out_pointcloud.points[i].x << ", " << out_pointcloud.points[i].y << ", " << out_pointcloud.points[i].z << std::endl;
       }
     }
-
-    // if(out_pointcloud.points[i].x < origin_pos[0].x + fenceRange && out_pointcloud.points[i].x > origin_pos[1].x - fenceRange)
-    // {
-    // // if(out_pointcloud.points[i].x > origin_pos[0].x + fenceRange || out_pointcloud.points[i].x < origin_pos[1].x - fenceRange)
-    //   pointCount += 1;
-    //   std::cout << out_pointcloud.points[i].x << ", " << out_pointcloud.points[i].y << ", " << out_pointcloud.points[i].z << std::endl;
-    // }
-    // if(out_pointcloud.points[i].y < origin_pos[0].y + fenceRange && out_pointcloud.points[i].y > origin_pos[1].y - fenceRange)
-    // {
-    // // if(out_pointcloud.points[i].y > origin_pos[0].y + fenceRange || out_pointcloud.points[i].y < origin_pos[1].y - fenceRange)
-    //   pointCount += 1;
-    //   std::cout << out_pointcloud.points[i].x << ", " << out_pointcloud.points[i].y << ", " << out_pointcloud.points[i].z << std::endl;
-    // }
     // std::cout << "pointCount: " << pointCount << std::endl;
   }
-  // std::cout << "===================" << std::endl;
 
-  if (pointCount > fenceCount)
+  if (pointCount > fenceCount) // something inside fence
   {
-    // std::cout << pointCount << std::endl;
+    // std::cout << pointCount << std::endl; // debug print
     fenceFlag = 1;
-    soundTimer.start();
-    if (lastFenceFlag < fenceFlag)
+    soundTimer.start(); // timer start
+    if (lastFenceFlag < fenceFlag) // just publish at first time
       robotSound_pub.publish(sound_msg);
   }
   else
   {
     fenceFlag = 0;
-    soundTimer.stop();
+    soundTimer.stop(); // timer stop
   }
-  lastFenceFlag = fenceFlag;
+  lastFenceFlag = fenceFlag; // record last flag
 }
 
 /****************************************************************************************************************************************
