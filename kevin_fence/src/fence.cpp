@@ -145,7 +145,7 @@ KevinFence::KevinFence(/* args */) : pnh_("~")
   // draw
   for(int i = 0; i < fenceLevel; i++)
   {
-    drawSquare(1, origin_pos[0].x + fenceStruct[i].range.width, origin_pos[0].y + fenceStruct[i].range.height, origin_pos[1].x - fenceStruct[i].range.width, origin_pos[1].y - fenceStruct[i].range.height, 2, vis_pub);
+    drawSquare(1, origin_pos[0].x + fenceStruct[i].range.height, origin_pos[0].y + fenceStruct[i].range.width, origin_pos[1].x - fenceStruct[i].range.height, origin_pos[1].y - fenceStruct[i].range.width, 2, vis_pub);
   }
 }
 
@@ -164,9 +164,9 @@ void KevinFence::timerCallback(const ros::TimerEvent &)
   for(int i = 0; i < fenceLevel; i++)
   {
     if (fenceStruct[i].flag)
-      drawSquare(1, origin_pos[0].x + fenceStruct[i].range.width, origin_pos[0].y + fenceStruct[i].range.height, origin_pos[1].x - fenceStruct[i].range.width, origin_pos[1].y - fenceStruct[i].range.height, 1, vis_pub);
+      drawSquare(1, origin_pos[0].x + fenceStruct[i].range.height, origin_pos[0].y + fenceStruct[i].range.width, origin_pos[1].x - fenceStruct[i].range.height, origin_pos[1].y - fenceStruct[i].range.width, 1, vis_pub);
     else
-      drawSquare(1, origin_pos[0].x + fenceStruct[i].range.width, origin_pos[0].y + fenceStruct[i].range.height, origin_pos[1].x - fenceStruct[i].range.width, origin_pos[1].y - fenceStruct[i].range.height, 2, vis_pub);
+      drawSquare(1, origin_pos[0].x + fenceStruct[i].range.height, origin_pos[0].y + fenceStruct[i].range.width, origin_pos[1].x - fenceStruct[i].range.height, origin_pos[1].y - fenceStruct[i].range.width, 2, vis_pub);
   }
   
 }
@@ -217,9 +217,9 @@ void KevinFence::mergedCloudSubCallback(const sensor_msgs::PointCloud2 &msg)
     // std::cout << out_pointcloud.points[i].x << ", " << out_pointcloud.points[i].y << ", " << out_pointcloud.points[i].z << std::endl;
     for(int j = 0; j < fenceLevel; j++)
     {
-      if ((out_pointcloud.points[i].x < (origin_pos[0].x + fenceStruct[i].range.width)) && (out_pointcloud.points[i].x > (origin_pos[1].x - fenceStruct[i].range.width))) // if x point inside the fence
+      if ((out_pointcloud.points[i].x < (origin_pos[0].x + fenceStruct[i].range.height)) && (out_pointcloud.points[i].x > (origin_pos[1].x - fenceStruct[i].range.width))) // if x point inside the fence
       {
-        if ((out_pointcloud.points[i].y < (origin_pos[0].y + fenceStruct[i].range.height)) && (out_pointcloud.points[i].y > (origin_pos[1].y - fenceStruct[i].range.height))) // if y point inside the fence
+        if ((out_pointcloud.points[i].y < (origin_pos[0].y + fenceStruct[i].range.width)) && (out_pointcloud.points[i].y > (origin_pos[1].y - fenceStruct[i].range.width))) // if y point inside the fence
         {
           fenceStruct[i].pointCount++; // how many point ++
           // std::cout << out_pointcloud.points[i].x << ", " << out_pointcloud.points[i].y << ", " << out_pointcloud.points[i].z << std::endl;
