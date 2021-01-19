@@ -11,6 +11,7 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/point_cloud_conversion.h>
 #include <sound_play/SoundRequest.h>
+#include <ros/package.h>
 
 #include <vector>
 
@@ -86,24 +87,27 @@ KevinFence::KevinFence(/* args */) : pnh_("~")
   now = ros::Time::now();
 
   timer = node.createTimer(ros::Duration(1), &KevinFence::timerCallback, this);
-  soundTimer = node.createTimer(ros::Duration(3), &KevinFence::soundTimerCallback, this);
+  soundTimer = node.createTimer(ros::Duration(2), &KevinFence::soundTimerCallback, this);
   vis_pub = node.advertise<visualization_msgs::Marker>("visualization_marker", 0, this);
   scan_sub = node.subscribe("scan", 1000, &KevinFence::scanSubCallback, this);
   merged_cloud_sub = node.subscribe("merged_cloud", 1000, &KevinFence::mergedCloudSubCallback, this);
   robotSound_pub = node.advertise<sound_play::SoundRequest>("robotsound", 0, this);
 
   // get param
+  std::string soundPath = ros::package::getPath("sound_play");
   pnh_.param<int>("fence_level", fenceLevel, 2);
   pnh_.param<double>("fence_range_height", fenceStruct[0].range.height, 1);
   pnh_.param<double>("fence_range_width", fenceStruct[0].range.width, 0.5);
   pnh_.param<int>("fence_count", fenceCount, 50);
-  pnh_.param<std::string>("sound_file", sound_msg.arg, "/home/user/ros/multi_laser/src/audio_common/sound_play/sounds/ts_excuse_me_chinese.wav");
+  pnh_.param<std::string>("sound_file", sound_msg.arg, soundPath+"/sounds/ts_excuse_me_chinese.wav");
 
   // fence range
   for(int i = 0; i < fenceLevel; i++)
   {
     fenceStruct[i].range.height = fenceStruct[0].range.height * (i + 1);
     fenceStruct[i].range.width = fenceStruct[0].range.width * (i + 1);
+    std::cout << "fence_range_height " << i << ": " << fenceStruct[i].range.height << std::endl;
+    std::cout << "fence_range_width " << i << ": " << fenceStruct[i].range.width << std::endl;
   }
 
   // print param
@@ -145,9 +149,12 @@ KevinFence::KevinFence(/* args */) : pnh_("~")
   // draw
   for(int i = 0; i < fenceLevel; i++)
   {
-    drawSquare(1, origin_pos[0].x + fenceStruct[i].range.height, origin_pos[0].y + fenceStruct[i].range.width, origin_pos[1].x - fenceStruct[i].range.height, origin_pos[1].y - fenceStruct[i].range.width, 2, vis_pub);
+    fenceStruct[i].flag = 0;
+    drawSquare(1+i, origin_pos[0].x + fenceStruct[i].range.height, origin_pos[0].y + fenceStruct[i].range.width, origin_pos[1].x - fenceStruct[i].range.height, origin_pos[1].y - fenceStruct[i].range.width, 2, vis_pub);
   }
+  soundTimer.stop(); // sound timer stop
 }
+
 
 KevinFence::~KevinFence()
 {
@@ -163,10 +170,11 @@ void KevinFence::timerCallback(const ros::TimerEvent &)
   // draw the fence
   for(int i = 0; i < fenceLevel; i++)
   {
+    // std::cout << "fense" << i << ": " << fenceStruct[i].flag << std::endl; // debug print
     if (fenceStruct[i].flag)
-      drawSquare(1, origin_pos[0].x + fenceStruct[i].range.height, origin_pos[0].y + fenceStruct[i].range.width, origin_pos[1].x - fenceStruct[i].range.height, origin_pos[1].y - fenceStruct[i].range.width, 1, vis_pub);
+      drawSquare(1+i, origin_pos[0].x + fenceStruct[i].range.height, origin_pos[0].y + fenceStruct[i].range.width, origin_pos[1].x - fenceStruct[i].range.height, origin_pos[1].y - fenceStruct[i].range.width, 1, vis_pub);
     else
-      drawSquare(1, origin_pos[0].x + fenceStruct[i].range.height, origin_pos[0].y + fenceStruct[i].range.width, origin_pos[1].x - fenceStruct[i].range.height, origin_pos[1].y - fenceStruct[i].range.width, 2, vis_pub);
+      drawSquare(1+i, origin_pos[0].x + fenceStruct[i].range.height, origin_pos[0].y + fenceStruct[i].range.width, origin_pos[1].x - fenceStruct[i].range.height, origin_pos[1].y - fenceStruct[i].range.width, 2, vis_pub);
   }
   
 }
@@ -211,10 +219,10 @@ void KevinFence::mergedCloudSubCallback(const sensor_msgs::PointCloud2 &msg)
 
   sensor_msgs::PointCloud out_pointcloud; // create a pointclound
   sensor_msgs::convertPointCloud2ToPointCloud(msg, out_pointcloud); //pointclound2 to pointclound
-  int pointCount = 0; // how many point
   for (int i = 0; i < out_pointcloud.points.size(); i++)
   {
     // std::cout << out_pointcloud.points[i].x << ", " << out_pointcloud.points[i].y << ", " << out_pointcloud.points[i].z << std::endl;
+    fenceStruct[i].pointCount = 0;
     for(int j = 0; j < fenceLevel; j++)
     {
       if ((out_pointcloud.points[i].x < (origin_pos[0].x + fenceStruct[i].range.height)) && (out_pointcloud.points[i].x > (origin_pos[1].x - fenceStruct[i].range.width))) // if x point inside the fence
@@ -232,28 +240,30 @@ void KevinFence::mergedCloudSubCallback(const sensor_msgs::PointCloud2 &msg)
 
   for(int i = fenceLevel-1; i >= 0; i--)
   {
-    if (pointCount > fenceCount) // something inside fence
+    if (fenceStruct[i].pointCount > fenceCount) // something inside fence
     {
-      // std::cout << pointCount << std::endl; // debug print
+      // std::cout << fenceStruct[i].pointCount << std::endl; // debug print
       fenceStruct[i].flag = 1;
-      soundTimer.start(); // timer start
+      soundTimer.start(); // sound timer start
       if (fenceStruct[i].lastFlag < fenceStruct[i].flag) // just at first time
       { 
-        if(i == 0)
-          soundTimer.setPeriod(ros::Duration(3));
+        if(i == 0) // fence level sound speed
+          soundTimer.setPeriod(ros::Duration(2));
         else if(i == 1)
           soundTimer.setPeriod(ros::Duration(1));
+
         robotSound_pub.publish(sound_msg);
       }
         
     }
     else
     {
+      // std::cout << fenceStruct[i].pointCount << std::endl; // debug print
       fenceStruct[i].flag = 0;
-      soundTimer.stop(); // timer stop
+      soundTimer.stop(); // sound timer stop
     }
     fenceStruct[i].lastFlag = fenceStruct[i].flag; // record last flag
-    }
+  }
 }
 
 /****************************************************************************************************************************************

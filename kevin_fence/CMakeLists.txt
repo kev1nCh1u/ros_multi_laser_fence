@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   diagnostic_msgs
   sound_play
+  roslib
 )
 
 ## System dependencies are found with CMake's conventions

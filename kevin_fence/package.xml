@@ -64,6 +64,7 @@
 
   <depend>diagnostic_msgs</depend>
   <exec_depend>sound_play</exec_depend>
+  <exec_depend>roslib</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
