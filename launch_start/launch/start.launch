@@ -39,8 +39,8 @@
     <node name="sound_play" pkg="sound_play" type="soundplay_node.py"  output="screen"/>
 
     <node name="kevin_fence" pkg="kevin_fence" type="fence"  output="screen">
-        <!-- <param name="fence_range_height" value="1.5"/>
-        <param name="fence_range_width" value="1.5"/> -->
+        <param name="fence_range_height" value="3"/>
+        <param name="fence_range_width" value="1"/>
         <param name="fence_count" value="5"/>
         <!-- <param name="sound_file" value="$(find sound_play)/sounds/ts_excuse_me_chinese.wav"/> -->
         <!-- <param name="sound_file" value="$(find sound_play)/sounds/excuse_me_mix.wav"/> -->
