@@ -219,17 +219,20 @@ void KevinFence::mergedCloudSubCallback(const sensor_msgs::PointCloud2 &msg)
 
   sensor_msgs::PointCloud out_pointcloud; // create a pointclound
   sensor_msgs::convertPointCloud2ToPointCloud(msg, out_pointcloud); //pointclound2 to pointclound
+  for(int i = 0; i < fenceLevel; i++)
+  {
+      fenceStruct[i].pointCount = 0;
+  }
   for (int i = 0; i < out_pointcloud.points.size(); i++)
   {
     // std::cout << out_pointcloud.points[i].x << ", " << out_pointcloud.points[i].y << ", " << out_pointcloud.points[i].z << std::endl;
-    fenceStruct[i].pointCount = 0;
     for(int j = 0; j < fenceLevel; j++)
     {
-      if ((out_pointcloud.points[i].x < (origin_pos[0].x + fenceStruct[i].range.height)) && (out_pointcloud.points[i].x > (origin_pos[1].x - fenceStruct[i].range.width))) // if x point inside the fence
+      if ((out_pointcloud.points[i].x < (origin_pos[0].x + fenceStruct[j].range.height)) && (out_pointcloud.points[i].x > (origin_pos[1].x - fenceStruct[j].range.width))) // if x point inside the fence
       {
-        if ((out_pointcloud.points[i].y < (origin_pos[0].y + fenceStruct[i].range.width)) && (out_pointcloud.points[i].y > (origin_pos[1].y - fenceStruct[i].range.width))) // if y point inside the fence
+        if ((out_pointcloud.points[i].y < (origin_pos[0].y + fenceStruct[j].range.width)) && (out_pointcloud.points[i].y > (origin_pos[1].y - fenceStruct[j].range.width))) // if y point inside the fence
         {
-          fenceStruct[i].pointCount++; // how many point ++
+          fenceStruct[j].pointCount++; // how many point ++
           // std::cout << out_pointcloud.points[i].x << ", " << out_pointcloud.points[i].y << ", " << out_pointcloud.points[i].z << std::endl;
         }
       }
@@ -238,8 +241,10 @@ void KevinFence::mergedCloudSubCallback(const sensor_msgs::PointCloud2 &msg)
     
   }
 
+  int stopFlag = 0;
   for(int i = fenceLevel-1; i >= 0; i--)
   {
+    // std::cout << "fence" << i << ":" << fenceStruct[i].pointCount << std::endl;
     if (fenceStruct[i].pointCount > fenceCount) // something inside fence
     {
       // std::cout << fenceStruct[i].pointCount << std::endl; // debug print
@@ -248,9 +253,9 @@ void KevinFence::mergedCloudSubCallback(const sensor_msgs::PointCloud2 &msg)
       if (fenceStruct[i].lastFlag < fenceStruct[i].flag) // just at first time
       { 
         if(i == 0) // fence level sound speed
-          soundTimer.setPeriod(ros::Duration(2));
+          soundTimer.setPeriod(ros::Duration(0.1));
         else if(i == 1)
-          soundTimer.setPeriod(ros::Duration(1));
+          soundTimer.setPeriod(ros::Duration(0.5));
 
         robotSound_pub.publish(sound_msg);
       }
@@ -260,10 +265,18 @@ void KevinFence::mergedCloudSubCallback(const sensor_msgs::PointCloud2 &msg)
     {
       // std::cout << fenceStruct[i].pointCount << std::endl; // debug print
       fenceStruct[i].flag = 0;
-      soundTimer.stop(); // sound timer stop
+      // soundTimer.stop(); // sound timer stop
+      stopFlag++;
     }
     fenceStruct[i].lastFlag = fenceStruct[i].flag; // record last flag
   }
+
+  if(stopFlag == fenceLevel)
+  {
+    soundTimer.stop(); // sound timer stop
+  }
+
+
 }
 
 /****************************************************************************************************************************************

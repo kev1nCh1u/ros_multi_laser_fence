@@ -17,7 +17,7 @@
 ## start urg_node
     roslaunch urg_node multi_node.launch
     rosrun ira_laser_tools laserscan_multi_merger
-    rosrun rviz rviz -d /home/user/ros/multi_laser/src/20201207.rviz
+    rosrun rviz rviz -d /home/user/ros/multi_laser_fence/src/file_pkg/20201207.rviz
     rosrun rqt_reconfigure rqt_reconfigure
 
 ## rosparam
