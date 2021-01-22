@@ -254,7 +254,7 @@ void KevinFence::mergedCloudSubCallback(const sensor_msgs::PointCloud2 &msg)
     {
       // std::cout << fenceStruct[i].pointCount << std::endl; // debug print
       fenceStruct[i].flag = 1;
-      soundTimer.start();                                // sound timer start
+      soundTimer.start();                                                           // sound timer start
       if (fenceStruct[i].lastFlag < fenceStruct[i].flag || lastStopFlag < stopFlag) // just at first time
       {
         if (i == 0) // fence level sound speed
@@ -269,17 +269,6 @@ void KevinFence::mergedCloudSubCallback(const sensor_msgs::PointCloud2 &msg)
     {
       // std::cout << fenceStruct[i].pointCount << std::endl; // debug print
       fenceStruct[i].flag = 0;
-      for (int j = 0; j < fenceLevel; j++)
-      {
-        //   fenceStruct[j].flag = 0;
-        // if (fenceStruct[j].pointCount > fenceCount)
-        // {
-        //   if (j == 0) // fence level sound speed
-        //     soundTimer.setPeriod(ros::Duration(0.1));
-        //   else if (j == 1)
-        //     soundTimer.setPeriod(ros::Duration(0.5));
-        // }
-      }
     }
     fenceStruct[i].lastFlag = fenceStruct[i].flag; // record last flag
     lastStopFlag = stopFlag;
