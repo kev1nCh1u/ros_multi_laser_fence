@@ -69,6 +69,8 @@ private:
   int fenceCount;
   // int fenceFlag;
   // int lastFenceFlag;
+  int stopFlag;
+  int lastStopFlag;
   sound_play::SoundRequest sound_msg;
 
   pos_t origin_pos[2];
@@ -238,21 +240,27 @@ void KevinFence::mergedCloudSubCallback(const sensor_msgs::PointCloud2 &msg)
     }
   }
 
-  int stopFlag = 0;
-  for(int i = fenceLevel-1; i >= 0; i--)
+  stopFlag = 0;
+  for (int i = 0; i < fenceLevel; i++)
+  {
+    if (!(fenceStruct[i].pointCount > fenceCount))
+      stopFlag++;
+  }
+
+  for (int i = fenceLevel - 1; i >= 0; i--)
   {
     // std::cout << "fence" << i << ":" << fenceStruct[i].pointCount << std::endl;
     if (fenceStruct[i].pointCount > fenceCount) // something inside fence
     {
       // std::cout << fenceStruct[i].pointCount << std::endl; // debug print
       fenceStruct[i].flag = 1;
-      soundTimer.start(); // sound timer start
-      if (fenceStruct[i].lastFlag < fenceStruct[i].flag) // just at first time
+      soundTimer.start();                                // sound timer start
+      if (fenceStruct[i].lastFlag < fenceStruct[i].flag || lastStopFlag < stopFlag) // just at first time
       {
         if (i == 0) // fence level sound speed
           soundTimer.setPeriod(ros::Duration(0.1));
         else if (i == 1)
-          soundTimer.setPeriod(ros::Duration(1));
+          soundTimer.setPeriod(ros::Duration(0.5));
         // std::cout << i << " " << fenceStruct[i].pointCount << std::endl; // debug print
         robotSound_pub.publish(sound_msg);
       }
@@ -261,11 +269,20 @@ void KevinFence::mergedCloudSubCallback(const sensor_msgs::PointCloud2 &msg)
     {
       // std::cout << fenceStruct[i].pointCount << std::endl; // debug print
       fenceStruct[i].flag = 0;
-      // for (int j = 0; j < fenceLevel; j++)
-      //   fenceStruct[j].flag = 0;
-      stopFlag++;
+      for (int j = 0; j < fenceLevel; j++)
+      {
+        //   fenceStruct[j].flag = 0;
+        // if (fenceStruct[j].pointCount > fenceCount)
+        // {
+        //   if (j == 0) // fence level sound speed
+        //     soundTimer.setPeriod(ros::Duration(0.1));
+        //   else if (j == 1)
+        //     soundTimer.setPeriod(ros::Duration(0.5));
+        // }
+      }
     }
     fenceStruct[i].lastFlag = fenceStruct[i].flag; // record last flag
+    lastStopFlag = stopFlag;
   }
 
   if (stopFlag == fenceLevel)
