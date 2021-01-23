@@ -228,7 +228,7 @@ void KevinFence::mergedCloudSubCallback(const sensor_msgs::PointCloud2 &msg)
     // std::cout << out_pointcloud.points[i].x << ", " << out_pointcloud.points[i].y << ", " << out_pointcloud.points[i].z << std::endl;
     for (int j = 0; j < fenceLevel; j++)
     {
-      if ((out_pointcloud.points[i].x < (origin_pos[0].x + fenceStruct[j].range.height)) && (out_pointcloud.points[i].x > (origin_pos[1].x - fenceStruct[j].range.width))) // if x point inside the fence
+      if ((out_pointcloud.points[i].x < (origin_pos[0].x + fenceStruct[j].range.height)) && (out_pointcloud.points[i].x > (origin_pos[1].x - fenceStruct[j].range.height))) // if x point inside the fence
       {
         if ((out_pointcloud.points[i].y < (origin_pos[0].y + fenceStruct[j].range.width)) && (out_pointcloud.points[i].y > (origin_pos[1].y - fenceStruct[j].range.width))) // if y point inside the fence
         {
