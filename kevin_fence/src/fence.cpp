@@ -65,10 +65,7 @@ private:
 
   int fenceLevel;
   fence_t fenceStruct[10];
-  // square_t fenceRange[10];
   int fenceCount;
-  // int fenceFlag;
-  // int lastFenceFlag;
   int stopFlag;
   int lastStopFlag;
   sound_play::SoundRequest sound_msg;
@@ -87,6 +84,7 @@ KevinFence::KevinFence(/* args */) : pnh_("~")
 {
   // ros
   now = ros::Time::now();
+  soundTimer.stop(); // sound timer stop
 
   timer = node.createTimer(ros::Duration(0.5), &KevinFence::timerCallback, this);
   soundTimer = node.createTimer(ros::Duration(1), &KevinFence::soundTimerCallback, this);
@@ -154,7 +152,6 @@ KevinFence::KevinFence(/* args */) : pnh_("~")
     fenceStruct[i].flag = 0;
     drawSquare(1 + i, origin_pos[0].x + fenceStruct[i].range.height, origin_pos[0].y + fenceStruct[i].range.width, origin_pos[1].x - fenceStruct[i].range.height, origin_pos[1].y - fenceStruct[i].range.width, 2, vis_pub);
   }
-  soundTimer.stop(); // sound timer stop
 }
 
 KevinFence::~KevinFence()
