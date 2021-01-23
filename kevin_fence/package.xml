@@ -63,6 +63,8 @@
   <exec_depend>tf</exec_depend>
 
   <depend>diagnostic_msgs</depend>
+  <build_depend>sound_play</build_depend>
+  <build_export_depend>sound_play</build_export_depend>
   <exec_depend>sound_play</exec_depend>
   <exec_depend>roslib</exec_depend>
 
