@@ -1,5 +1,7 @@
 # multi laser fence
 
+![Alt text](img/untitled.GIF?raw=true "Title")
+
 ## chmod
     sudo chmod 777 /dev/ttyACM0
     sudo chmod 777 /dev/ttyACM1
